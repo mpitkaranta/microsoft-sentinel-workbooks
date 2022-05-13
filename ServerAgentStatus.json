@@ -1,0 +1,1568 @@
+{
+    "version": "Notebook/1.0",
+    "items": [
+      {
+        "type": 11,
+        "content": {
+          "version": "LinkItem/1.0",
+          "style": "tabs",
+          "links": [
+            {
+              "id": "9aeefefa-b950-47fe-9e29-f21aa3e300e6",
+              "cellValue": "selectedTab",
+              "linkTarget": "parameter",
+              "linkLabel": "Server agent status",
+              "subTarget": "agents",
+              "style": "link"
+            }
+          ]
+        },
+        "name": "Tabs"
+      },
+      {
+        "type": 9,
+        "content": {
+          "version": "KqlParameterItem/1.0",
+          "parameters": [
+            {
+              "id": "ccd5adcd-8d59-4cfe-99ec-98075de2e253",
+              "version": "KqlParameterItem/1.0",
+              "name": "DefaultSubscription_Internal",
+              "type": 1,
+              "isHiddenWhenLocked": true
+            },
+            {
+              "id": "77a93352-1a2c-4251-b77d-3c4b11d05f65",
+              "version": "KqlParameterItem/1.0",
+              "name": "DefaultWorkspace_Internal",
+              "type": 1,
+              "isHiddenWhenLocked": true
+            },
+            {
+              "id": "1ca69445-60fc-4806-b43d-ac7e6aad630a",
+              "version": "KqlParameterItem/1.0",
+              "name": "Subscription",
+              "type": 6,
+              "query": "summarize by subscriptionId\r\n| project value = strcat(\"/subscriptions/\", subscriptionId), label = subscriptionId, selected = iff(subscriptionId =~ '{DefaultSubscription_Internal}', true, false)",
+              "crossComponentResources": [
+                "value::all"
+              ],
+              "typeSettings": {
+                "additionalResourceOptions": [],
+                "showDefault": false
+              },
+              "queryType": 1,
+              "resourceType": "microsoft.resourcegraph/resources",
+              "label": "Subscription (for Sentinel workspace)",
+              "value": null
+            },
+            {
+              "id": "e94aafa3-c5d9-4523-89f0-4e87aa754511",
+              "version": "KqlParameterItem/1.0",
+              "name": "Workspace",
+              "type": 5,
+              "query": "where type =~ 'microsoft.operationalinsights/workspaces'\n| project id, selected = iff(id =~ '{DefaultWorkspace_Internal}', true, false)",
+              "crossComponentResources": [
+                "{Subscription}"
+              ],
+              "typeSettings": {
+                "resourceTypeFilter": {
+                  "microsoft.operationalinsights/workspaces": true
+                },
+                "additionalResourceOptions": [],
+                "showDefault": false
+              },
+              "queryType": 1,
+              "resourceType": "microsoft.resourcegraph/resources",
+              "value": null
+            },
+            {
+              "id": "eafaa0ec-7c3a-4ee5-babe-9850080c909d",
+              "version": "KqlParameterItem/1.0",
+              "name": "resourceGroup",
+              "type": 1,
+              "query": "resources\r\n| where type =~ 'microsoft.operationalinsights/workspaces'\r\n| where id == \"{Workspace}\"\r\n| project resourceGroup",
+              "crossComponentResources": [
+                "value::selected"
+              ],
+              "isHiddenWhenLocked": true,
+              "queryType": 1,
+              "resourceType": "microsoft.resourcegraph/resources"
+            },
+            {
+              "id": "c4b69c01-2263-4ada-8d9c-43433b739ff3",
+              "version": "KqlParameterItem/1.0",
+              "name": "TimeRange",
+              "type": 4,
+              "typeSettings": {
+                "selectableValues": [
+                  {
+                    "durationMs": 300000
+                  },
+                  {
+                    "durationMs": 900000
+                  },
+                  {
+                    "durationMs": 1800000
+                  },
+                  {
+                    "durationMs": 3600000
+                  },
+                  {
+                    "durationMs": 14400000
+                  },
+                  {
+                    "durationMs": 43200000
+                  },
+                  {
+                    "durationMs": 86400000
+                  },
+                  {
+                    "durationMs": 172800000
+                  },
+                  {
+                    "durationMs": 259200000
+                  },
+                  {
+                    "durationMs": 604800000
+                  },
+                  {
+                    "durationMs": 1209600000
+                  },
+                  {
+                    "durationMs": 2419200000
+                  },
+                  {
+                    "durationMs": 2592000000
+                  },
+                  {
+                    "durationMs": 5184000000
+                  },
+                  {
+                    "durationMs": 7776000000
+                  }
+                ],
+                "allowCustom": false
+              },
+              "value": {
+                "durationMs": 2592000000
+              }
+            },
+            {
+              "id": "27308a9d-46a2-4fca-8035-e813201fb4f8",
+              "version": "KqlParameterItem/1.0",
+              "name": "GiBperday",
+              "type": 1,
+              "query": "union withsource = tt *\r\n| where TimeGenerated > startofday({TimeRange:start}) and TimeGenerated < startofday({TimeRange:end})\r\n// Only look at chargeable Tables\r\n| where _IsBillable == True\r\n| summarize\r\nTotalGBytes =round(sum(_BilledSize/(1024*1024*1024)),2)\r\nby bin(TimeGenerated, 1d)//, Solution=tt\r\n| summarize round(avg(TotalGBytes),2)\r\n",
+              "crossComponentResources": [
+                "{Workspace}"
+              ],
+              "isHiddenWhenLocked": true,
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces"
+            },
+            {
+              "id": "c71f3009-a3f4-4aa5-aaf0-d0f667100e56",
+              "version": "KqlParameterItem/1.0",
+              "name": "Help",
+              "label": "Show Help",
+              "type": 10,
+              "description": "This will show some help information to help you understand the page you are on",
+              "isRequired": true,
+              "typeSettings": {
+                "additionalResourceOptions": [],
+                "showDefault": false
+              },
+              "jsonData": "[{ \"value\": \"Yes\", \"label\": \"Yes\"},\r\n {\"value\": \"No\", \"label\": \"No\", \"selected\":true }]",
+              "value": "Yes"
+            },
+            {
+              "id": "b3cc049e-1a81-4b54-bd5c-0652e741089c",
+              "version": "KqlParameterItem/1.0",
+              "name": "ServerList",
+              "type": 1,
+              "query": "resources\r\n| where type =~ \"microsoft.hybridcompute/machines\" or type =~ \"microsoft.compute/virtualmachines\"\r\n| project id\r\n",
+              "crossComponentResources": [
+                "value::all"
+              ],
+              "isHiddenWhenLocked": true,
+              "queryType": 1,
+              "resourceType": "microsoft.resourcegraph/resources"
+            }
+          ],
+          "style": "above",
+          "queryType": 1,
+          "resourceType": "microsoft.resourcegraph/resources"
+        },
+        "name": "Parameters"
+      },
+      {
+        "type": 3,
+        "content": {
+          "version": "KqlItem/1.0",
+          "query": "resources\r\n| where type =~ 'microsoft.operationalinsights/workspaces' \r\n| where id has \"{Workspace}\"\r\n| extend state = trim(' ', tostring(properties.provisioningState))\r\n\t\t,sku   = trim(' ', tostring(properties.sku.name))\r\n        ,skuUpdate = trim(' ', tostring(properties.sku.lastSkuUpdate))\r\n\t\t,retentionDays = trim(' ', tostring(properties.retentionInDays))\r\n\t\t,dailyquotaGB  = trim(' ', tostring(properties.workspaceCapping.dailyQuotaGb))\r\n| extend dailyquotaGB = iif(dailyquotaGB !=-1.0, dailyquotaGB,\"Not set\")\r\n| extend skuUpdate    = iif(strlen(skuUpdate) > 0, skuUpdate,\"Unknown\")\r\n| extend sentinel     = iif(toint(retentionDays) < 90,\"If you have Sentinel, you can change your retention to 90days (free)?\",\"\")\r\n| project ['Workspace Name']=id, ['Resource Group']=resourceGroup, location, ['Data Retention(days)']=retentionDays, ['Last known SKU update']=skuUpdate, ['Daily Data Cap']=dailyquotaGB, ['License']=sku, ['Notes'] = sentinel",
+          "size": 4,
+          "queryType": 1,
+          "resourceType": "microsoft.resourcegraph/resources",
+          "crossComponentResources": [
+            "{Subscription}"
+          ],
+          "gridSettings": {
+            "formatters": [
+              {
+                "columnMatch": "Data Retention(days)",
+                "formatter": 0,
+                "formatOptions": {
+                  "showIcon": true
+                },
+                "numberFormat": {
+                  "unit": 0,
+                  "options": {
+                    "style": "decimal",
+                    "useGrouping": false
+                  }
+                }
+              },
+              {
+                "columnMatch": "Last known SKU update",
+                "formatter": 18,
+                "formatOptions": {
+                  "showIcon": true,
+                  "thresholdsOptions": "icons",
+                  "thresholdsGrid": [
+                    {
+                      "operator": "is Empty",
+                      "thresholdValue": "\" \"",
+                      "text": "{0}{1}"
+                    },
+                    {
+                      "operator": "Default",
+                      "thresholdValue": null,
+                      "representation": "success",
+                      "text": "{0}{1}"
+                    }
+                  ]
+                }
+              },
+              {
+                "columnMatch": "Daily Data Cap",
+                "formatter": 18,
+                "formatOptions": {
+                  "showIcon": true,
+                  "thresholdsOptions": "icons",
+                  "thresholdsGrid": [
+                    {
+                      "operator": "==",
+                      "thresholdValue": "not set",
+                      "representation": "Unavailable",
+                      "text": "{0}{1}"
+                    },
+                    {
+                      "operator": "Default",
+                      "thresholdValue": null,
+                      "representation": "1",
+                      "text": "{0}{1}"
+                    }
+                  ]
+                }
+              },
+              {
+                "columnMatch": "Data Retention",
+                "formatter": 0,
+                "formatOptions": {
+                  "showIcon": true
+                },
+                "numberFormat": {
+                  "unit": 0,
+                  "options": {
+                    "style": "decimal",
+                    "useGrouping": false
+                  }
+                }
+              }
+            ],
+            "sortBy": [
+              {
+                "itemKey": "$gen_link_Workspace Name_0",
+                "sortOrder": 1
+              }
+            ]
+          },
+          "sortBy": [
+            {
+              "itemKey": "$gen_link_Workspace Name_0",
+              "sortOrder": 1
+            }
+          ]
+        },
+        "conditionalVisibility": {
+          "parameterName": "selectedTab",
+          "comparison": "isEqualTo",
+          "value": "WorkspaceInfo"
+        },
+        "name": "query - 18"
+      },
+      {
+        "type": 1,
+        "content": {
+          "json": "# Overview"
+        },
+        "conditionalVisibility": {
+          "parameterName": "selectedTab",
+          "comparison": "isEqualTo",
+          "value": "WorkspaceInfo"
+        },
+        "showPin": true,
+        "name": "OverviewHeader"
+      },
+      {
+        "type": 1,
+        "content": {
+          "json": "\r\nThis section shows the general status of data ingestion in the selected workspace.\r\n\r\nPlease select the *Subscription* and *Workspace* you wish to view, and the *TimeRange* to define the scope."
+        },
+        "conditionalVisibilities": [
+          {
+            "parameterName": "selectedTab",
+            "comparison": "isEqualTo",
+            "value": "WorkspaceInfo"
+          },
+          {
+            "parameterName": "Help",
+            "comparison": "isEqualTo",
+            "value": "Yes"
+          }
+        ],
+        "showPin": true,
+        "name": "OverviewText"
+      },
+      {
+        "type": 12,
+        "content": {
+          "version": "NotebookGroup/1.0",
+          "groupType": "editable",
+          "items": [
+            {
+              "type": 1,
+              "content": {
+                "json": "# Server agent status"
+              },
+              "name": "ServerAgentStatusHeader"
+            },
+            {
+              "type": 1,
+              "content": {
+                "json": "This workbook displays information about the health of different security agents installed on the servers (both Azure Virtual Machines and Azure Arc servers). The workbook combines data from the following sources:\r\n* Server list (Azure Resource Graph)\r\n* Sentinel log collection status (Sentinel Log Analytics workspace)\r\n* Defender for Cloud status (Azure Resource Graph)\r\n* Defender for Endpoint status (Sentinel Log Analytics workspace)\r\n* Vulnerability assessment solution status (Azure Resource Graph)\r\n\r\n**Note! Azure Databricks servers are excluded, as they are managed by Azure.**\r\n\r\nYou can filter the results based on status or server type, and export the results into Excel."
+              },
+              "conditionalVisibility": {
+                "parameterName": "Help",
+                "comparison": "isEqualTo",
+                "value": "Yes"
+              },
+              "name": "ServerAgentStatusDescription"
+            },
+            {
+              "type": 12,
+              "content": {
+                "version": "NotebookGroup/1.0",
+                "groupType": "editable",
+                "loadType": "explicit",
+                "loadButtonText": "Load data",
+                "items": [
+                  {
+                    "type": 1,
+                    "content": {
+                      "json": "## Security agent status: {TimeRange}"
+                    },
+                    "name": "SecurityAgentStatusHeader"
+                  },
+                  {
+                    "type": 9,
+                    "content": {
+                      "version": "KqlParameterItem/1.0",
+                      "parameters": [
+                        {
+                          "id": "e0fb3c9a-f42f-4dfb-a86c-f4dd36584904",
+                          "version": "KqlParameterItem/1.0",
+                          "name": "UnhealthyCriteria",
+                          "label": "Unhealthy definition",
+                          "type": 2,
+                          "isRequired": true,
+                          "typeSettings": {
+                            "additionalResourceOptions": []
+                          },
+                          "jsonData": "[\r\n    { \"value\":\"1m\", \"label\":\"1 minute without heartbeat\", \"selected\":false },\r\n    { \"value\":\"5m\", \"label\":\"5 minutes without heartbeat\", \"selected\":false },\r\n    { \"value\":\"30m\", \"label\":\"30 minutes without heartbeat\", \"selected\":false },\r\n    { \"value\":\"1h\", \"label\":\"1 hour without heartbeat\", \"selected\":true },\r\n    { \"value\":\"2h\", \"label\":\"2 hours without heartbeat\", \"selected\":false },\r\n    { \"value\":\"8h\", \"label\":\"8 hours without heartbeat\", \"selected\":false },\r\n    { \"value\":\"1d\", \"label\":\"1 day without heartbeat\", \"selected\":false },\r\n    { \"value\":\"2d\", \"label\":\"2 days without heartbeat\", \"selected\":false },\r\n    { \"value\":\"7d\", \"label\":\"7 days without heartbeat\", \"selected\":false }\r\n]",
+                          "timeContext": {
+                            "durationMs": 0
+                          },
+                          "timeContextFromParameter": "TimeRange",
+                          "value": "2h"
+                        },
+                        {
+                          "id": "d14127bf-9e87-4c04-9627-485446d3c640",
+                          "version": "KqlParameterItem/1.0",
+                          "name": "StatusSentinel",
+                          "label": "Log collection status (Sentinel)",
+                          "type": 2,
+                          "isRequired": true,
+                          "multiSelect": true,
+                          "quote": "'",
+                          "delimiter": ",",
+                          "value": [
+                            "value::all"
+                          ],
+                          "typeSettings": {
+                            "additionalResourceOptions": [
+                              "value::all"
+                            ],
+                            "showDefault": false
+                          },
+                          "jsonData": "[\r\n    {\"value\":\"Unhealthy\",\"label\":\"Unhealthy or Not Reporting\"}\r\n]",
+                          "defaultValue": "value::all"
+                        },
+                        {
+                          "id": "ed04d065-165a-4211-b7ac-ad368f596f31",
+                          "version": "KqlParameterItem/1.0",
+                          "name": "StatusSecurityCenter",
+                          "label": "Status (Security Center)",
+                          "type": 2,
+                          "isRequired": true,
+                          "multiSelect": true,
+                          "quote": "'",
+                          "delimiter": ",",
+                          "typeSettings": {
+                            "additionalResourceOptions": [
+                              "value::all"
+                            ],
+                            "showDefault": false
+                          },
+                          "jsonData": "[\r\n    \"Monitored\",\r\n    \"Partially monitored\",\r\n    \"Not monitored\"\r\n]",
+                          "defaultValue": "value::all",
+                          "value": [
+                            "value::all"
+                          ]
+                        },
+                        {
+                          "id": "ab1e3676-71d4-4326-85b6-195deff4f529",
+                          "version": "KqlParameterItem/1.0",
+                          "name": "ServerType",
+                          "label": "Server Type",
+                          "type": 2,
+                          "isRequired": true,
+                          "multiSelect": true,
+                          "quote": "'",
+                          "delimiter": ",",
+                          "typeSettings": {
+                            "additionalResourceOptions": [
+                              "value::all"
+                            ],
+                            "showDefault": false
+                          },
+                          "jsonData": "[\r\n    {\r\n        \"value\": \"microsoft.compute/virtualmachines\",\r\n        \"label\": \"Azure Virtual Machine\"\r\n    },\r\n    {\r\n        \"value\": \"microsoft.hybridcompute/machines\",\r\n        \"label\": \"Azure Arc Server\"\r\n    }\r\n]",
+                          "defaultValue": "value::all",
+                          "value": [
+                            "value::all"
+                          ]
+                        },
+                        {
+                          "id": "c95519f4-c38c-490e-8749-41d5b4617db9",
+                          "version": "KqlParameterItem/1.0",
+                          "name": "ServerSubscription",
+                          "type": 6,
+                          "multiSelect": true,
+                          "quote": "'",
+                          "delimiter": ",",
+                          "value": [
+                            "value::all"
+                          ],
+                          "typeSettings": {
+                            "additionalResourceOptions": [
+                              "value::all"
+                            ],
+                            "includeAll": true
+                          },
+                          "defaultValue": "value::all",
+                          "label": "Server Subscription"
+                        },
+                        {
+                          "id": "afadbe34-81f0-4127-860f-e9c4ba689f82",
+                          "version": "KqlParameterItem/1.0",
+                          "name": "HideBackgroundData",
+                          "label": "Hide unnecessary tables",
+                          "type": 10,
+                          "description": "Select 'Yes' to hide tables that contain background data",
+                          "isRequired": true,
+                          "query": "{\"version\":\"1.0.0\",\"content\":\"[{ \\\"value\\\": \\\"Yes\\\", \\\"label\\\": \\\"Yes\\\"},\\r\\n {\\\"value\\\": \\\"No\\\", \\\"label\\\": \\\"No\\\", \\\"selected\\\":true }]\",\"transformers\":null}",
+                          "typeSettings": {
+                            "additionalResourceOptions": [],
+                            "showDefault": false
+                          },
+                          "queryType": 8,
+                          "value": "Yes"
+                        }
+                      ],
+                      "style": "above",
+                      "queryType": 8
+                    },
+                    "name": "HeartbeatParameters"
+                  },
+                  {
+                    "type": 1,
+                    "content": {
+                      "json": "The latency is measured by comparing the result of the **ingestion_time()** function to the value of the **TimeGenerated** property.",
+                      "style": "info"
+                    },
+                    "name": "HeartbeatDescription"
+                  },
+                  {
+                    "type": 3,
+                    "content": {
+                      "version": "KqlItem/1.0",
+                      "query": "Heartbeat\r\n| where TimeGenerated {TimeRange:query}\r\n| summarize LastHeartbeat = max(TimeGenerated) by Computer\r\n| extend ServerName = tolower(Computer)\r\n| extend State = iff(LastHeartbeat < ago({UnhealthyCriteria}), 'Unhealthy', 'Healthy')\r\n| extend ServerName = tolower(Computer)\r\n| join kind=leftouter (\r\nDeviceInfo\r\n| where TimeGenerated {TimeRange:query}\r\n| summarize LastMDEReport = max(TimeGenerated) by DeviceName\r\n| project ServerName = tolower(DeviceName), LastMDEReport\r\n) on ServerName\r\n| where \"{StatusSentinel:label}\" == \"All\" or State in ({StatusSentinel})\r\n| extend MDEState = case(\r\n    isnull(LastMDEReport), \"Not connected\",\r\n    LastMDEReport < ago({UnhealthyCriteria}), \"Unhealthy\",\r\n    \"Healthy\"\r\n)\r\n| summarize count() by State\r\n//| extend servers = \"{ServerList}\"\r\n//| extend servers_d = todynamic(\"{ServerList}\")\r\n//| extend test = array_length(split(\"{ServerList}\",\",\"))\r\n",
+                      "size": 4,
+                      "showAnalytics": true,
+                      "title": "{TimeRange:label}: Server health status in Sentinel (unhealthy definition: {UnhealthyCriteria:label})",
+                      "timeContextFromParameter": "TimeRange",
+                      "exportFieldName": "_ComputerName_",
+                      "exportParameterName": "ComputerName",
+                      "exportDefaultValue": "All",
+                      "queryType": 0,
+                      "resourceType": "microsoft.operationalinsights/workspaces",
+                      "visualization": "tiles",
+                      "gridSettings": {
+                        "formatters": [
+                          {
+                            "columnMatch": "_ComputerName_",
+                            "formatter": 5
+                          },
+                          {
+                            "columnMatch": "Computer",
+                            "formatter": 0,
+                            "numberFormat": {
+                              "unit": 0,
+                              "options": {
+                                "style": "decimal",
+                                "useGrouping": false
+                              }
+                            }
+                          },
+                          {
+                            "columnMatch": "State",
+                            "formatter": 18,
+                            "formatOptions": {
+                              "thresholdsOptions": "icons",
+                              "thresholdsGrid": [
+                                {
+                                  "operator": "==",
+                                  "thresholdValue": "Healthy",
+                                  "representation": "Available",
+                                  "text": "{0}{1}"
+                                },
+                                {
+                                  "operator": "==",
+                                  "thresholdValue": "Unhealthy",
+                                  "representation": "warning",
+                                  "text": "{0}{1}"
+                                },
+                                {
+                                  "operator": "Default",
+                                  "thresholdValue": null,
+                                  "representation": null,
+                                  "text": "{0}{1}"
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "columnMatch": "Environment",
+                            "formatter": 18,
+                            "formatOptions": {
+                              "thresholdsOptions": "colors",
+                              "thresholdsGrid": [
+                                {
+                                  "operator": "==",
+                                  "thresholdValue": "Azure",
+                                  "text": "{0}{1}"
+                                },
+                                {
+                                  "operator": "==",
+                                  "thresholdValue": "Direct Agent",
+                                  "representation": "magenta",
+                                  "text": "{0}{1}"
+                                },
+                                {
+                                  "operator": "==",
+                                  "thresholdValue": "SCOM Agent",
+                                  "representation": "purple",
+                                  "text": "{0}{1}"
+                                },
+                                {
+                                  "operator": "==",
+                                  "thresholdValue": "SCOM Management Server",
+                                  "representation": "gray",
+                                  "text": "{0}{1}"
+                                },
+                                {
+                                  "operator": "Default",
+                                  "thresholdValue": null,
+                                  "representation": "blue",
+                                  "text": "{0}{1}"
+                                }
+                              ]
+                            },
+                            "numberFormat": {
+                              "unit": 0,
+                              "options": {
+                                "style": "decimal",
+                                "useGrouping": false
+                              }
+                            }
+                          },
+                          {
+                            "columnMatch": "Heartbeat Trend",
+                            "formatter": 10,
+                            "formatOptions": {
+                              "palette": "redGreen"
+                            }
+                          },
+                          {
+                            "columnMatch": "Details",
+                            "formatter": 5
+                          }
+                        ],
+                        "labelSettings": [
+                          {
+                            "columnId": "State",
+                            "label": "Health status"
+                          }
+                        ]
+                      },
+                      "sortBy": [],
+                      "tileSettings": {
+                        "showBorder": false,
+                        "titleContent": {
+                          "columnMatch": "State",
+                          "formatter": 1
+                        },
+                        "leftContent": {
+                          "columnMatch": "count_",
+                          "formatter": 12,
+                          "formatOptions": {
+                            "palette": "auto"
+                          },
+                          "numberFormat": {
+                            "unit": 17,
+                            "options": {
+                              "maximumSignificantDigits": 3,
+                              "maximumFractionDigits": 2
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "showPin": false,
+                    "name": "Server health status (Sentinel)"
+                  },
+                  {
+                    "type": 3,
+                    "content": {
+                      "version": "KqlItem/1.0",
+                      "query": "Heartbeat\r\n| where TimeGenerated {TimeRange:query}\r\n| extend Agent = case(\r\n    Version startswith \"0.\", \"Azure Monitoring Agent\",\r\n    Version startswith \"1.\", \"Azure Monitoring Agent\",\r\n    Version startswith \"10.\", \"Log Analytics Agent\",\r\n    \"Unknown\"\r\n)\r\n| summarize AggrAgent = strcat_array(make_set(Agent),\",\") by Computer\r\n| extend AgentVersion = case(\r\n    AggrAgent == \"Azure Monitoring Agent\", \"Azure Monitoring Agent\", \r\n    AggrAgent == \"Log Analytics Agent\", \"Log Analytics Agent\",\r\n    \"Both\"\r\n)\r\n| summarize count() by AgentVersion",
+                      "size": 4,
+                      "showAnalytics": true,
+                      "title": "{TimeRange:label}: Agent versions (covers only servers connected to Sentinel).",
+                      "timeContextFromParameter": "TimeRange",
+                      "exportFieldName": "_ComputerName_",
+                      "exportParameterName": "ComputerName",
+                      "exportDefaultValue": "All",
+                      "queryType": 0,
+                      "resourceType": "microsoft.operationalinsights/workspaces",
+                      "visualization": "tiles",
+                      "gridSettings": {
+                        "formatters": [
+                          {
+                            "columnMatch": "State",
+                            "formatter": 18,
+                            "formatOptions": {
+                              "thresholdsOptions": "icons",
+                              "thresholdsGrid": [
+                                {
+                                  "operator": "==",
+                                  "thresholdValue": "Healthy",
+                                  "representation": "Available",
+                                  "text": "{0}{1}"
+                                },
+                                {
+                                  "operator": "==",
+                                  "thresholdValue": "Unhealthy",
+                                  "representation": "warning",
+                                  "text": "{0}{1}"
+                                },
+                                {
+                                  "operator": "==",
+                                  "thresholdValue": "Not connected",
+                                  "representation": "cancelled",
+                                  "text": "{0}{1}"
+                                },
+                                {
+                                  "operator": "Default",
+                                  "thresholdValue": null,
+                                  "representation": null,
+                                  "text": "{0}{1}"
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "columnMatch": "_ComputerName_",
+                            "formatter": 5
+                          },
+                          {
+                            "columnMatch": "Computer",
+                            "formatter": 0,
+                            "numberFormat": {
+                              "unit": 0,
+                              "options": {
+                                "style": "decimal",
+                                "useGrouping": false
+                              }
+                            }
+                          },
+                          {
+                            "columnMatch": "Environment",
+                            "formatter": 18,
+                            "formatOptions": {
+                              "thresholdsOptions": "colors",
+                              "thresholdsGrid": [
+                                {
+                                  "operator": "==",
+                                  "thresholdValue": "Azure",
+                                  "text": "{0}{1}"
+                                },
+                                {
+                                  "operator": "==",
+                                  "thresholdValue": "Direct Agent",
+                                  "representation": "magenta",
+                                  "text": "{0}{1}"
+                                },
+                                {
+                                  "operator": "==",
+                                  "thresholdValue": "SCOM Agent",
+                                  "representation": "purple",
+                                  "text": "{0}{1}"
+                                },
+                                {
+                                  "operator": "==",
+                                  "thresholdValue": "SCOM Management Server",
+                                  "representation": "gray",
+                                  "text": "{0}{1}"
+                                },
+                                {
+                                  "operator": "Default",
+                                  "thresholdValue": null,
+                                  "representation": "blue",
+                                  "text": "{0}{1}"
+                                }
+                              ]
+                            },
+                            "numberFormat": {
+                              "unit": 0,
+                              "options": {
+                                "style": "decimal",
+                                "useGrouping": false
+                              }
+                            }
+                          },
+                          {
+                            "columnMatch": "Heartbeat Trend",
+                            "formatter": 10,
+                            "formatOptions": {
+                              "palette": "redGreen"
+                            }
+                          },
+                          {
+                            "columnMatch": "Details",
+                            "formatter": 5
+                          }
+                        ]
+                      },
+                      "sortBy": [],
+                      "tileSettings": {
+                        "titleContent": {
+                          "columnMatch": "AgentVersion",
+                          "formatter": 1
+                        },
+                        "leftContent": {
+                          "columnMatch": "count_",
+                          "formatter": 12,
+                          "formatOptions": {
+                            "palette": "auto"
+                          }
+                        },
+                        "showBorder": false
+                      }
+                    },
+                    "showPin": false,
+                    "name": "Agent versions"
+                  },
+                  {
+                    "type": 3,
+                    "content": {
+                      "version": "KqlItem/1.0",
+                      "query": "Heartbeat\r\n| where TimeGenerated {TimeRange:query}\r\n| summarize LastHeartbeat = max(TimeGenerated) by Computer\r\n| extend ServerName = tolower(Computer)\r\n| extend State = iff(LastHeartbeat < ago({UnhealthyCriteria}), 'Unhealthy', 'Healthy')\r\n| extend ServerName = tolower(Computer)\r\n| join kind=leftouter (\r\nDeviceInfo\r\n| where TimeGenerated {TimeRange:query}\r\n| summarize LastMDEReport = max(TimeGenerated) by DeviceName\r\n| project ServerName = tolower(DeviceName), LastMDEReport\r\n) on ServerName\r\n| where \"{StatusSentinel:label}\" == \"All\" or State in ({StatusSentinel})\r\n| extend MDEState = case(\r\n    isnull(LastMDEReport), \"Not connected\",\r\n    LastMDEReport < ago({UnhealthyCriteria}), \"Unhealthy\",\r\n    \"Healthy\"\r\n)\r\n| summarize count() by MDEState\r\n| project MDEState, count_",
+                      "size": 4,
+                      "showAnalytics": true,
+                      "title": "{TimeRange:label}: Server status in Defender for Endpoint (unhealthy definition: {UnhealthyCriteria:label}). Note! Covers only servers connected to Sentinel.",
+                      "timeContextFromParameter": "TimeRange",
+                      "exportFieldName": "_ComputerName_",
+                      "exportParameterName": "ComputerName",
+                      "exportDefaultValue": "All",
+                      "queryType": 0,
+                      "resourceType": "microsoft.operationalinsights/workspaces",
+                      "visualization": "tiles",
+                      "gridSettings": {
+                        "formatters": [
+                          {
+                            "columnMatch": "State",
+                            "formatter": 18,
+                            "formatOptions": {
+                              "thresholdsOptions": "icons",
+                              "thresholdsGrid": [
+                                {
+                                  "operator": "==",
+                                  "thresholdValue": "Healthy",
+                                  "representation": "Available",
+                                  "text": "{0}{1}"
+                                },
+                                {
+                                  "operator": "==",
+                                  "thresholdValue": "Unhealthy",
+                                  "representation": "warning",
+                                  "text": "{0}{1}"
+                                },
+                                {
+                                  "operator": "==",
+                                  "thresholdValue": "Not connected",
+                                  "representation": "cancelled",
+                                  "text": "{0}{1}"
+                                },
+                                {
+                                  "operator": "Default",
+                                  "thresholdValue": null,
+                                  "representation": null,
+                                  "text": "{0}{1}"
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "columnMatch": "_ComputerName_",
+                            "formatter": 5
+                          },
+                          {
+                            "columnMatch": "Computer",
+                            "formatter": 0,
+                            "numberFormat": {
+                              "unit": 0,
+                              "options": {
+                                "style": "decimal",
+                                "useGrouping": false
+                              }
+                            }
+                          },
+                          {
+                            "columnMatch": "Environment",
+                            "formatter": 18,
+                            "formatOptions": {
+                              "thresholdsOptions": "colors",
+                              "thresholdsGrid": [
+                                {
+                                  "operator": "==",
+                                  "thresholdValue": "Azure",
+                                  "text": "{0}{1}"
+                                },
+                                {
+                                  "operator": "==",
+                                  "thresholdValue": "Direct Agent",
+                                  "representation": "magenta",
+                                  "text": "{0}{1}"
+                                },
+                                {
+                                  "operator": "==",
+                                  "thresholdValue": "SCOM Agent",
+                                  "representation": "purple",
+                                  "text": "{0}{1}"
+                                },
+                                {
+                                  "operator": "==",
+                                  "thresholdValue": "SCOM Management Server",
+                                  "representation": "gray",
+                                  "text": "{0}{1}"
+                                },
+                                {
+                                  "operator": "Default",
+                                  "thresholdValue": null,
+                                  "representation": "blue",
+                                  "text": "{0}{1}"
+                                }
+                              ]
+                            },
+                            "numberFormat": {
+                              "unit": 0,
+                              "options": {
+                                "style": "decimal",
+                                "useGrouping": false
+                              }
+                            }
+                          },
+                          {
+                            "columnMatch": "Heartbeat Trend",
+                            "formatter": 10,
+                            "formatOptions": {
+                              "palette": "redGreen"
+                            }
+                          },
+                          {
+                            "columnMatch": "Details",
+                            "formatter": 5
+                          }
+                        ]
+                      },
+                      "sortBy": [],
+                      "tileSettings": {
+                        "titleContent": {
+                          "columnMatch": "MDEState",
+                          "formatter": 1
+                        },
+                        "leftContent": {
+                          "columnMatch": "count_",
+                          "formatter": 12,
+                          "formatOptions": {
+                            "palette": "auto"
+                          },
+                          "numberFormat": {
+                            "unit": 17,
+                            "options": {
+                              "maximumSignificantDigits": 3,
+                              "maximumFractionDigits": 2
+                            }
+                          }
+                        },
+                        "showBorder": false
+                      }
+                    },
+                    "showPin": false,
+                    "name": "Server status in Defender for Endpoint (only servers connected to Sentinel)"
+                  },
+                  {
+                    "type": 3,
+                    "content": {
+                      "version": "KqlItem/1.0",
+                      "query": "resources\r\n| where type =~ \"microsoft.hybridcompute/machines\" or type =~ \"microsoft.compute/virtualmachines\"\r\n| where \"{ServerSubscription:label}\" == \"All\" or strcat(\"/subscriptions/\", subscriptionId) in ({ServerSubscription})\r\n| extend details = todynamic(properties)\r\n| extend publisher = tostring(details.storageProfile.imageReference.publisher)\r\n| where publisher != \"AzureDatabricks\"\r\n| summarize count() by type\r\n| extend ServerType = iff(type == \"microsoft.compute/virtualmachines\", \"Azure\", \"ARC\")\r\n| project ServerType, count_",
+                      "size": 4,
+                      "showAnalytics": true,
+                      "title": "Total number of servers",
+                      "showRefreshButton": true,
+                      "queryType": 1,
+                      "resourceType": "microsoft.resourcegraph/resources",
+                      "crossComponentResources": [
+                        "{ServerSubscription}"
+                      ],
+                      "visualization": "tiles",
+                      "gridSettings": {
+                        "rowLimit": 1000
+                      },
+                      "tileSettings": {
+                        "titleContent": {
+                          "columnMatch": "ServerType",
+                          "formatter": 1
+                        },
+                        "leftContent": {
+                          "columnMatch": "count_",
+                          "formatter": 12,
+                          "formatOptions": {
+                            "palette": "auto"
+                          },
+                          "numberFormat": {
+                            "unit": 17,
+                            "options": {
+                              "maximumSignificantDigits": 3,
+                              "maximumFractionDigits": 2
+                            }
+                          }
+                        },
+                        "showBorder": false
+                      }
+                    },
+                    "name": "Total number of servers"
+                  },
+                  {
+                    "type": 3,
+                    "content": {
+                      "version": "KqlItem/1.0",
+                      "query": "Heartbeat\r\n| where TimeGenerated {TimeRange:query}\r\n| extend Agent = case(\r\n    Version startswith \"0.\", strcat(\"AMA (\",Version,\")\"),\r\n    Version startswith \"1.\", strcat(\"AMA (\",Version,\")\"),\r\n    Version startswith \"10.\", strcat(\"LA (\",Version,\")\"),\r\n    \"Unknown\"\r\n)\r\n| summarize LastHeartbeat = max(TimeGenerated), AgentVersion = strcat_array(make_set(Agent),\",\") by Computer\r\n| extend State = iff(LastHeartbeat < ago({UnhealthyCriteria}), 'Unhealthy', 'Healthy')\r\n| extend TimeFromNow = now() - LastHeartbeat\r\n| extend ServerName = tolower(Computer)\r\n| extend [\"TimeAgo\"] = strcat(case(TimeFromNow < 2m, strcat(toint(TimeFromNow / 1m), ' seconds'), TimeFromNow < 2h, strcat(toint(TimeFromNow / 1m), ' minutes'), TimeFromNow < 2d, strcat(toint(TimeFromNow / 1h), ' hours'), strcat(toint(TimeFromNow / 1d), ' days')), ' ago')\r\n| join (\r\nHeartbeat\r\n| where TimeGenerated {TimeRange:query}\r\n| extend Packed = pack_all()\r\n| extend ServerName = tolower(Computer)\r\n) on ServerName\r\n| where TimeGenerated == LastHeartbeat\r\n| join (\r\nHeartbeat\r\n| where TimeGenerated {TimeRange:query}\r\n| make-series InternalTrend=iff(count() > 0, 1, 0) default = 0 on TimeGenerated from {TimeRange:start} to {TimeRange:end} step {UnhealthyCriteria} by Computer\r\n| extend Trend=array_slice(InternalTrend, array_length(InternalTrend) - 30, array_length(InternalTrend)-1)\r\n| extend (s_min, s_minId, s_max, s_maxId, s_avg, s_var, s_stdev) = series_stats(Trend)\r\n| extend ServerName = tolower(Computer)\r\n| project ServerName, Trend, s_avg\r\n) on ServerName\r\n| join kind=leftouter (\r\nDeviceInfo\r\n| where TimeGenerated {TimeRange:query}\r\n| summarize LastMDEReport = max(TimeGenerated) by DeviceName\r\n| project ServerName=tolower(DeviceName), LastMDEReport\r\n) on ServerName\r\n| join kind=leftouter ( \r\nSecurityEvent\r\n| where TimeGenerated {TimeRange:query}\r\n| summarize LastSecurityEvent = max(TimeGenerated) by Computer\r\n| project ServerName = tolower(Computer), LastSecurityEvent\r\n) on ServerName\r\n| where \"{StatusSentinel:label}\" == \"All\" or State in ({StatusSentinel})\r\n| extend MDEStatus = case(\r\n    isnull(LastMDEReport), \"Not reporting\",\r\n    LastMDEReport < ago({UnhealthyCriteria}), \"Unhealthy\",\r\n    \"Healthy\"\r\n)\r\n| extend SecurityEventStatus = case(\r\n        isnull(LastSecurityEvent), \"Not reporting\",\r\n        LastSecurityEvent < ago(2h), \"Unhealthy\",\r\n        \"Healthy\"\r\n    )\r\n| order by State, s_avg asc, TimeAgo\r\n| project [\"_ComputerName_\"] = ServerName, [\"Server name\"]=strcat('🖥️ ', ServerName), [\"Environment\"] = iff(ComputerEnvironment == \"Azure\", ComputerEnvironment, Category), [\"OS\"]=iff(isempty(OSName), OSType, OSName), [\"Azure Resource\"]=_ResourceId, State, [\"Time\"]=strcat('🕒 ', TimeAgo), [\"Agent version\"]=AgentVersion, [\"Heartbeat Trend\"]=Trend, [\"Details\"]=Packed, [\"Security event status\"]=SecurityEventStatus, [\"MDE health status\"]=MDEStatus, [\"Last security event\"]=LastSecurityEvent, [\"Last MDE report\"]=LastMDEReport",
+                      "size": 0,
+                      "showAnalytics": true,
+                      "title": "{TimeRange:label}: all agent heartbeat data ",
+                      "timeContextFromParameter": "TimeRange",
+                      "exportFieldName": "_ComputerName_",
+                      "exportParameterName": "ComputerName",
+                      "exportDefaultValue": "All",
+                      "showExportToExcel": true,
+                      "queryType": 0,
+                      "resourceType": "microsoft.operationalinsights/workspaces",
+                      "crossComponentResources": [
+                        "{Workspace}"
+                      ],
+                      "gridSettings": {
+                        "formatters": [
+                          {
+                            "columnMatch": "_ComputerName_",
+                            "formatter": 5
+                          },
+                          {
+                            "columnMatch": "Computer",
+                            "formatter": 0,
+                            "numberFormat": {
+                              "unit": 0,
+                              "options": {
+                                "style": "decimal",
+                                "useGrouping": false
+                              }
+                            }
+                          },
+                          {
+                            "columnMatch": "State",
+                            "formatter": 18,
+                            "formatOptions": {
+                              "thresholdsOptions": "icons",
+                              "thresholdsGrid": [
+                                {
+                                  "operator": "==",
+                                  "thresholdValue": "Healthy",
+                                  "representation": "Available",
+                                  "text": "{0}{1}"
+                                },
+                                {
+                                  "operator": "==",
+                                  "thresholdValue": "Unhealthy",
+                                  "representation": "warning",
+                                  "text": "{0}{1}"
+                                },
+                                {
+                                  "operator": "Default",
+                                  "thresholdValue": null,
+                                  "representation": null,
+                                  "text": "{0}{1}"
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "columnMatch": "Environment",
+                            "formatter": 18,
+                            "formatOptions": {
+                              "thresholdsOptions": "colors",
+                              "thresholdsGrid": [
+                                {
+                                  "operator": "==",
+                                  "thresholdValue": "Azure",
+                                  "text": "{0}{1}"
+                                },
+                                {
+                                  "operator": "==",
+                                  "thresholdValue": "Direct Agent",
+                                  "representation": "magenta",
+                                  "text": "{0}{1}"
+                                },
+                                {
+                                  "operator": "==",
+                                  "thresholdValue": "SCOM Agent",
+                                  "representation": "purple",
+                                  "text": "{0}{1}"
+                                },
+                                {
+                                  "operator": "==",
+                                  "thresholdValue": "SCOM Management Server",
+                                  "representation": "gray",
+                                  "text": "{0}{1}"
+                                },
+                                {
+                                  "operator": "Default",
+                                  "thresholdValue": null,
+                                  "representation": "blue",
+                                  "text": "{0}{1}"
+                                }
+                              ]
+                            },
+                            "numberFormat": {
+                              "unit": 0,
+                              "options": {
+                                "style": "decimal",
+                                "useGrouping": false
+                              }
+                            }
+                          },
+                          {
+                            "columnMatch": "Heartbeat Trend",
+                            "formatter": 10,
+                            "formatOptions": {
+                              "palette": "redGreen"
+                            }
+                          },
+                          {
+                            "columnMatch": "Details",
+                            "formatter": 5
+                          }
+                        ],
+                        "filter": true,
+                        "labelSettings": [
+                          {
+                            "columnId": "Azure Resource",
+                            "label": "Azure resource"
+                          },
+                          {
+                            "columnId": "State",
+                            "label": "Health status"
+                          },
+                          {
+                            "columnId": "Time",
+                            "label": "Time of last heartbeat"
+                          },
+                          {
+                            "columnId": "Heartbeat Trend",
+                            "label": "Heartbeat history"
+                          }
+                        ]
+                      },
+                      "sortBy": []
+                    },
+                    "conditionalVisibility": {
+                      "parameterName": "HideBackgroundData",
+                      "comparison": "isEqualTo",
+                      "value": "No"
+                    },
+                    "showPin": true,
+                    "name": "Server heartbeat data"
+                  },
+                  {
+                    "type": 3,
+                    "content": {
+                      "version": "KqlItem/1.0",
+                      "query": "resources\r\n| where type =~ \"microsoft.hybridcompute/machines\" or type =~ \"microsoft.compute/virtualmachines\"\r\n| where \"{ServerSubscription:label}\" == \"All\" or strcat(\"/subscriptions/\", subscriptionId) in ({ServerSubscription})\r\n| extend details = todynamic(properties)\r\n| extend publisher = tostring(details.storageProfile.imageReference.publisher)\r\n| where publisher != \"AzureDatabricks\"\r\n| extend osType = case(\r\ntype == \"microsoft.hybridcompute/machines\", strcat(toupper(substring(properties.osName,0,1)),substring(properties.osName,1,strlen(properties.osName)-1)),\r\ntype == \"microsoft.compute/virtualmachines\", properties.storageProfile.osDisk.osType, \r\n\"Unknown\"\r\n)\r\n| extend serverState = case(\r\ntype == \"microsoft.compute/virtualmachines\", properties.extended.instanceView.powerState.displayStatus, \"\"\r\n)\r\n| extend resourceId = tolower(id)\r\n| project name, resourceId , type, location, osType, serverState\r\n| join kind=leftouter(securityresources\r\n| where type =~ \"microsoft.security/assessments\"\r\n| extend assessmentStatusCode = tostring(properties.status.code)\r\n| extend source = tostring(properties.resourceDetails.Source)\r\n| extend resourceId = tolower(tostring(properties.resourceDetails.Id))\r\n| extend resourceName = extract(@\"(.+)/(.+)\", 2, resourceId)\r\n| extend regexResourceId = extract_all(@\"/providers/([^/]+)(?:/([^/]+)/[^/]+(?:/([^/]+)/[^/]+)?)?/([^/]+)/[^/]+$\", resourceId)\r\n| extend RegexResourceType = regexResourceId[0]\r\n| extend mainType = RegexResourceType[1], extendedType = RegexResourceType[2], resourceType = RegexResourceType[3]\r\n| extend providerName = RegexResourceType[0],\r\n                        mainType = case(mainType !~ \"\", strcat(\"/\",mainType), \"\"),\r\n                        extendedType = case(extendedType!~ \"\", strcat(\"/\",extendedType), \"\"),\r\n                        resourceType = case(resourceType!~ \"\", strcat(\"/\",resourceType), \"\")\r\n| extend array = split(resourceId, '/')\r\n| extend typeFullPath = case(array_length(array) == 3,  'subscription', strcat(providerName, mainType, extendedType, resourceType))\r\n| extend typeFullPath = case(array_length(array) == 5, 'resourcegroups', typeFullPath)\r\n| where typeFullPath in ('microsoft.compute/virtualmachines', 'microsoft.hybridcompute/machines')\r\n| extend assessmentKey = tostring(name)\r\n| where assessmentKey in~ (\"d1db3318-01ff-16de-29eb-28b344515626\", \r\n                            \"45cfe080-ceb1-a91e-9743-71551ed24e94\", \r\n                            \"720a3e77-0b9a-4fa9-98b6-ddf0fd7e32c1\", \r\n                            \"27ac71b1-75c5-41c2-adc2-858f5db45b08\", \r\n                            \"8e2b96ff-3de2-289b-b5c1-3b9921a3441e\",\r\n                            \"ffff0522-1e88-47fc-8382-2a80ba848f5d\")\r\n| extend osTypeProperty = properties.additionalData[\"OS Type\"]\r\n| extend osType = case(isnotempty(osTypeProperty), osTypeProperty, \"\")\r\n| extend hasAgent = case(assessmentKey == \"d1db3318-01ff-16de-29eb-28b344515626\" \r\n                            or assessmentKey == \"45cfe080-ceb1-a91e-9743-71551ed24e94\" \r\n                            or assessmentKey == \"720a3e77-0b9a-4fa9-98b6-ddf0fd7e32c1\" \r\n                            or assessmentKey == \"27ac71b1-75c5-41c2-adc2-858f5db45b08\", assessmentStatusCode, \"\")\r\n| extend hasHealthyAgent = case(assessmentKey == \"8e2b96ff-3de2-289b-b5c1-3b9921a3441e\" , assessmentStatusCode, \"\")\r\n| extend agentIssues = case(hasHealthyAgent =~ \"Unhealthy\", properties.status.description, \"\")\r\n| extend vulnerabilityAssessmentStatus = case(assessmentKey == \"ffff0522-1e88-47fc-8382-2a80ba848f5d\", assessmentStatusCode, \"\")\r\n| extend vulnerabilityAssessmentStatusDescription = case(assessmentKey == \"ffff0522-1e88-47fc-8382-2a80ba848f5d\", properties.status.description, \"\")\r\n| extend workspaceAzureResourceId = case(hasAgent !~ \"\", properties.additionalData[\"Reporting workspace azure id\"], \"\")\r\n| extend workspaceName = case(workspaceAzureResourceId !~ \"\", extract(@\"(.+)/(.+)\", 2, workspaceAzureResourceId), \"\")\r\n| extend assessmentDisplayName = case(isnotempty(properties.displayName), properties.displayName, properties.metadata.displayName)\r\n| summarize assessmentsCount = count() , hasAgent = max(hasAgent), hasHealthyAgent=max(hasHealthyAgent), agentIssues= max(agentIssues), vulnerabilityAssessmentStatus=max(vulnerabilityAssessmentStatus), vulnerabilityAssessmentDescription=max(vulnerabilityAssessmentStatus), workspaceName = max(workspaceName) by resourceId\r\n| extend agentMonitoring = case(hasAgent =~ \"NotApplicable\", 'Not applicable',\r\n\t\t\t\t\t\t\t\t\t\t\t\thasAgent =~ \"\", '',\r\n                                                hasAgent =~ \"Unhealthy\", \"Not monitored\",\r\n                                                hasAgent =~ \"Healthy\" and isnotempty(hasHealthyAgent) and hasHealthyAgent !~ \"Healthy\", \"Partially monitored\",\r\n                                                \"Monitored\")) on resourceId\r\n| where \"{StatusSecurityCenter:label}\" == \"All\" or agentMonitoring in ({StatusSecurityCenter})\r\n| where \"{ServerType:label}\" == \"All\" or type in ({ServerType})\r\n| project name, resourceId, type, osType, hasAgent, hasHealthyAgent, agentMonitoring, agentIssues, vulnerabilityAssessmentStatus, vulnerabilityAssessmentDescription, serverState",
+                      "size": 0,
+                      "title": "Server list and Security Center status (from Resource Graph)",
+                      "showRefreshButton": true,
+                      "showExportToExcel": true,
+                      "queryType": 1,
+                      "resourceType": "microsoft.resourcegraph/resources",
+                      "crossComponentResources": [
+                        "value::all"
+                      ],
+                      "gridSettings": {
+                        "rowLimit": 1000
+                      }
+                    },
+                    "conditionalVisibility": {
+                      "parameterName": "HideBackgroundData",
+                      "comparison": "isEqualTo",
+                      "value": "No"
+                    },
+                    "name": "Server list"
+                  },
+                  {
+                    "type": 1,
+                    "content": {
+                      "json": "## Server agent status\r\nThe status information is fetched from the following locations:\r\n* **Heartbeat status (Sentinel)** - Uses the Heartbeat table \r\n* **Security event status (Sentinel)** - Uses the SecurityEvent table \r\n* **Status (Defender for Cloud)** - Uses the Microsoft Defender for Cloud assessments\r\n* **Status (Vulnerability Assessment)** - Uses the Microsoft Defender for Cloud assessments\r\n* **Status (Defender for Endpoint)** - Uses the DeviceInfo table (which is forwarded from Microsoft Defender for Endpoint)\r\n* **Agent version** - Uses the SecurityEvent table\r\n* **Heartbeat history (Sentinel)** - Uses the Heartbeat table\r\n* **Power state** - Uses Resource Graph\r\n\r\n**Note! Azure Databricks servers are excluded, as they are managed by Azure.**\r\n"
+                    },
+                    "name": "text - 10"
+                  },
+                  {
+                    "type": 3,
+                    "content": {
+                      "version": "KqlItem/1.0",
+                      "query": "{\"version\":\"Merge/1.0\",\"merges\":[{\"id\":\"3898e129-00e7-4074-93c6-b0e1e081e051\",\"mergeType\":\"leftouter\",\"leftTable\":\"Server list\",\"rightTable\":\"Server heartbeat data\",\"leftColumn\":\"resourceId\",\"rightColumn\":\"Azure Resource\"}],\"projectRename\":[{\"originalName\":\"[Server list].name\",\"mergedName\":\"Server name\",\"fromId\":\"3898e129-00e7-4074-93c6-b0e1e081e051\"},{\"originalName\":\"[Server list].resourceId\",\"mergedName\":\"Resource id\",\"fromId\":\"3898e129-00e7-4074-93c6-b0e1e081e051\"},{\"originalName\":\"[Server list].osType\",\"mergedName\":\"Operating System\",\"fromId\":\"3898e129-00e7-4074-93c6-b0e1e081e051\"},{\"originalName\":\"[Server list].type\",\"mergedName\":\"Server type\",\"fromId\":\"3898e129-00e7-4074-93c6-b0e1e081e051\"},{\"originalName\":\"[Server heartbeat data].State\",\"mergedName\":\"Health status\",\"fromId\":\"3898e129-00e7-4074-93c6-b0e1e081e051\"},{\"originalName\":\"[Added column]\",\"mergedName\":\"Heartbeat status (Sentinel)\",\"fromId\":null,\"isNewItem\":true,\"newItemData\":[{\"criteriaContext\":{\"leftOperand\":\"Health status\",\"operator\":\"==\",\"rightValType\":\"static\",\"rightVal\":\"Healthy\",\"resultValType\":\"static\",\"resultVal\":\"Healthy\"}},{\"criteriaContext\":{\"leftOperand\":\"Health status\",\"operator\":\"==\",\"rightValType\":\"static\",\"rightVal\":\"Unhealthy\",\"resultValType\":\"static\",\"resultVal\":\"Unhealthy\"}},{\"criteriaContext\":{\"operator\":\"Default\",\"rightValType\":\"column\",\"resultValType\":\"static\",\"resultVal\":\"Not reporting\"}}]},{\"originalName\":\"[Server heartbeat data].Security event status\",\"mergedName\":\"Security event status\",\"fromId\":\"unknown\"},{\"originalName\":\"[Added column]\",\"mergedName\":\"Security event status (Sentinel)\",\"fromId\":null,\"isNewItem\":true,\"newItemData\":[{\"criteriaContext\":{\"leftOperand\":\"Security event status\",\"operator\":\"==\",\"rightValType\":\"static\",\"rightVal\":\"Unhealthy\",\"resultValType\":\"static\",\"resultVal\":\"Unhealthy\"}},{\"criteriaContext\":{\"leftOperand\":\"Security event status\",\"operator\":\"==\",\"rightValType\":\"static\",\"rightVal\":\"Healthy\",\"resultValType\":\"static\",\"resultVal\":\"Healthy\"}},{\"criteriaContext\":{\"operator\":\"Default\",\"rightValType\":\"column\",\"resultValType\":\"static\",\"resultVal\":\"Not reporting\"}}]},{\"originalName\":\"[Server heartbeat data].Time\",\"mergedName\":\"Time of last heartbeat\",\"fromId\":\"3898e129-00e7-4074-93c6-b0e1e081e051\"},{\"originalName\":\"[Server list].agentMonitoring\",\"mergedName\":\"Status (Defender for Cloud)\",\"fromId\":\"3898e129-00e7-4074-93c6-b0e1e081e051\"},{\"originalName\":\"[Server list].agentIssues\",\"mergedName\":\"agentIssues\",\"fromId\":\"3898e129-00e7-4074-93c6-b0e1e081e051\"},{\"originalName\":\"[Added column]\",\"mergedName\":\"Issues (Defender for Cloud)\",\"fromId\":null,\"isNewItem\":true,\"newItemData\":[{\"criteriaContext\":{\"leftOperand\":\"agentIssues\",\"operator\":\"is Empty\",\"rightValType\":\"column\",\"resultValType\":\"static\",\"resultVal\":\"N/A\"}},{\"criteriaContext\":{\"operator\":\"Default\",\"rightValType\":\"column\",\"resultValType\":\"column\",\"resultVal\":\"agentIssues\"}}]},{\"originalName\":\"[Server list].vulnerabilityAssessmentStatus\",\"mergedName\":\"Status (Vulnerability Assessment)\",\"fromId\":\"3898e129-00e7-4074-93c6-b0e1e081e051\"},{\"originalName\":\"[Server heartbeat data].MDE health status\",\"mergedName\":\"MDE status\",\"fromId\":\"unknown\"},{\"originalName\":\"[Added column]\",\"mergedName\":\"Status (Defender for Endpoint)\",\"fromId\":null,\"isNewItem\":true,\"newItemData\":[{\"criteriaContext\":{\"leftOperand\":\"MDE status\",\"operator\":\"==\",\"rightValType\":\"static\",\"rightVal\":\"Healthy\",\"resultValType\":\"static\",\"resultVal\":\"Healthy\"}},{\"criteriaContext\":{\"leftOperand\":\"MDE status\",\"operator\":\"==\",\"rightValType\":\"static\",\"rightVal\":\"Unhealthy\",\"resultValType\":\"static\",\"resultVal\":\"Unhealthy\"}},{\"criteriaContext\":{\"operator\":\"Default\",\"rightValType\":\"column\",\"resultValType\":\"static\",\"resultVal\":\"Not reporting\"}}]},{\"originalName\":\"[Server heartbeat data].Environment\",\"mergedName\":\"Environment\",\"fromId\":\"3898e129-00e7-4074-93c6-b0e1e081e051\"},{\"originalName\":\"[Server heartbeat data].OS\",\"mergedName\":\"OS\",\"fromId\":\"3898e129-00e7-4074-93c6-b0e1e081e051\"},{\"originalName\":\"[Server heartbeat data].Azure Resource\",\"mergedName\":\"Azure resource\",\"fromId\":\"3898e129-00e7-4074-93c6-b0e1e081e051\"},{\"originalName\":\"[Server heartbeat data].Agent version\",\"mergedName\":\"Agent version\",\"fromId\":\"unknown\"},{\"originalName\":\"[Server heartbeat data].Heartbeat Trend\",\"mergedName\":\"Heartbeat history (Sentinel)\",\"fromId\":\"3898e129-00e7-4074-93c6-b0e1e081e051\"},{\"originalName\":\"[Server heartbeat data].Details\",\"mergedName\":\"Details\",\"fromId\":\"3898e129-00e7-4074-93c6-b0e1e081e051\"},{\"originalName\":\"[Server list].serverState\",\"mergedName\":\"Power state\",\"fromId\":\"3898e129-00e7-4074-93c6-b0e1e081e051\"},{\"originalName\":\"[Server list].hasAgent\",\"mergedName\":\"hasAgent\",\"fromId\":\"3898e129-00e7-4074-93c6-b0e1e081e051\"},{\"originalName\":\"[Server list].hasHealthyAgent\",\"mergedName\":\"hasHealthyAgent\",\"fromId\":\"3898e129-00e7-4074-93c6-b0e1e081e051\"},{\"originalName\":\"[Server heartbeat data]._ComputerName_\",\"mergedName\":\"_ComputerName_\",\"fromId\":\"3898e129-00e7-4074-93c6-b0e1e081e051\"},{\"originalName\":\"[Server heartbeat data].Computer\",\"mergedName\":\"Computer\",\"fromId\":\"3898e129-00e7-4074-93c6-b0e1e081e051\"},{\"originalName\":\"[Server heartbeat data].Last MDE report\",\"mergedName\":\"Last MDE report\",\"fromId\":\"unknown\"},{\"originalName\":\"[Server list].vulnerabilityAssessmentDescription\",\"mergedName\":\"vulnerabilityAssessmentDescription\",\"fromId\":\"3898e129-00e7-4074-93c6-b0e1e081e051\"},{\"originalName\":\"[Added column]\",\"mergedName\":\"Issues (Vulnerability Assessment)\",\"fromId\":null,\"isNewItem\":true,\"newItemData\":[{\"criteriaContext\":{\"leftOperand\":\"vulnerabilityAssessmentStatusDescription\",\"operator\":\"is Empty\",\"rightValType\":\"column\",\"resultValType\":\"static\",\"resultVal\":\"N/A\"}},{\"criteriaContext\":{\"operator\":\"Default\",\"rightValType\":\"column\",\"resultValType\":\"column\",\"resultVal\":\"vulnerabilityAssessmentStatusDescription\"}}]},{\"originalName\":\"[Server heartbeat data].Server name\",\"mergedName\":\"Server name\",\"fromId\":\"unknown\"},{\"originalName\":\"[Server heartbeat data].Last security event\",\"mergedName\":\"Last security event\",\"fromId\":\"unknown\"},{\"originalName\":\"[Server heartbeat data]. MDE health status\"},{\"originalName\":\"[Server heartbeat data].SecurityEventStatus\"}]}",
+                      "size": 0,
+                      "showRefreshButton": true,
+                      "showExportToExcel": true,
+                      "exportToExcelOptions": "all",
+                      "queryType": 7,
+                      "gridSettings": {
+                        "formatters": [
+                          {
+                            "columnMatch": "Server name",
+                            "formatter": 5
+                          },
+                          {
+                            "columnMatch": "Server type",
+                            "formatter": 16,
+                            "formatOptions": {
+                              "showIcon": true
+                            }
+                          },
+                          {
+                            "columnMatch": "Health status",
+                            "formatter": 5
+                          },
+                          {
+                            "columnMatch": "Heartbeat status (Sentinel)",
+                            "formatter": 18,
+                            "formatOptions": {
+                              "thresholdsOptions": "icons",
+                              "thresholdsGrid": [
+                                {
+                                  "operator": "==",
+                                  "thresholdValue": "Healthy",
+                                  "representation": "success",
+                                  "text": "{0}{1}"
+                                },
+                                {
+                                  "operator": "==",
+                                  "thresholdValue": "Unhealthy",
+                                  "representation": "2",
+                                  "text": "{0}{1}"
+                                },
+                                {
+                                  "operator": "==",
+                                  "thresholdValue": "Not reporting",
+                                  "representation": "cancelled",
+                                  "text": "{0}{1}"
+                                },
+                                {
+                                  "operator": "Default",
+                                  "thresholdValue": null,
+                                  "representation": "more",
+                                  "text": "{0}{1}"
+                                }
+                              ]
+                            },
+                            "tooltipFormat": {
+                              "tooltip": "Last heartbeat: [\"Time of last heartbeat\"]"
+                            }
+                          },
+                          {
+                            "columnMatch": "Security event status",
+                            "formatter": 5
+                          },
+                          {
+                            "columnMatch": "Security event status (Sentinel)",
+                            "formatter": 18,
+                            "formatOptions": {
+                              "thresholdsOptions": "icons",
+                              "thresholdsGrid": [
+                                {
+                                  "operator": "==",
+                                  "thresholdValue": "Healthy",
+                                  "representation": "Available",
+                                  "text": "{0}{1}"
+                                },
+                                {
+                                  "operator": "==",
+                                  "thresholdValue": "Unhealthy",
+                                  "representation": "2",
+                                  "text": "{0}{1}"
+                                },
+                                {
+                                  "operator": "==",
+                                  "thresholdValue": "Not reporting",
+                                  "representation": "cancelled",
+                                  "text": "{0}{1}"
+                                },
+                                {
+                                  "operator": "Default",
+                                  "thresholdValue": null,
+                                  "representation": "success",
+                                  "text": "{0}{1}"
+                                }
+                              ]
+                            },
+                            "tooltipFormat": {
+                              "tooltip": "Last security event: [\"Last security event\"]"
+                            }
+                          },
+                          {
+                            "columnMatch": "Time of last heartbeat",
+                            "formatter": 5
+                          },
+                          {
+                            "columnMatch": "Status (Defender for Cloud)",
+                            "formatter": 18,
+                            "formatOptions": {
+                              "thresholdsOptions": "icons",
+                              "thresholdsGrid": [
+                                {
+                                  "operator": "==",
+                                  "thresholdValue": "Monitored",
+                                  "representation": "success",
+                                  "text": "{0}{1}"
+                                },
+                                {
+                                  "operator": "==",
+                                  "thresholdValue": "Not monitored",
+                                  "representation": "cancelled",
+                                  "text": "{0}{1}"
+                                },
+                                {
+                                  "operator": "==",
+                                  "thresholdValue": "Partially monitored",
+                                  "representation": "2",
+                                  "text": "{0}{1}"
+                                },
+                                {
+                                  "operator": "==",
+                                  "thresholdValue": "Not applicable",
+                                  "representation": "more",
+                                  "text": "{0}{1}"
+                                },
+                                {
+                                  "operator": "Default",
+                                  "thresholdValue": null,
+                                  "representation": "uninitialized",
+                                  "text": "{0}{1}"
+                                }
+                              ]
+                            },
+                            "tooltipFormat": {
+                              "tooltip": "Description: [\"Issues (Defender for Cloud)\"]"
+                            }
+                          },
+                          {
+                            "columnMatch": "agentIssues",
+                            "formatter": 5
+                          },
+                          {
+                            "columnMatch": "Issues (Defender for Cloud)",
+                            "formatter": 5
+                          },
+                          {
+                            "columnMatch": "Status (Vulnerability Assessment)",
+                            "formatter": 18,
+                            "formatOptions": {
+                              "thresholdsOptions": "icons",
+                              "thresholdsGrid": [
+                                {
+                                  "operator": "==",
+                                  "thresholdValue": "Healthy",
+                                  "representation": "success",
+                                  "text": "{0}{1}"
+                                },
+                                {
+                                  "operator": "==",
+                                  "thresholdValue": "Unhealthy",
+                                  "representation": "2",
+                                  "text": "{0}{1}"
+                                },
+                                {
+                                  "operator": "==",
+                                  "thresholdValue": "NotApplicable",
+                                  "representation": "more",
+                                  "text": "{0}{1}"
+                                },
+                                {
+                                  "operator": "Default",
+                                  "thresholdValue": null,
+                                  "representation": "pending",
+                                  "text": "{0}{1}"
+                                }
+                              ]
+                            },
+                            "tooltipFormat": {
+                              "tooltip": "Description: [\"Issues (Vulnerability Assessment)\"]"
+                            }
+                          },
+                          {
+                            "columnMatch": "MDE status",
+                            "formatter": 5
+                          },
+                          {
+                            "columnMatch": "Status (Defender for Endpoint)",
+                            "formatter": 18,
+                            "formatOptions": {
+                              "thresholdsOptions": "icons",
+                              "thresholdsGrid": [
+                                {
+                                  "operator": "==",
+                                  "thresholdValue": "Healthy",
+                                  "representation": "success",
+                                  "text": "{0}{1}"
+                                },
+                                {
+                                  "operator": "==",
+                                  "thresholdValue": "Unhealthy",
+                                  "representation": "2",
+                                  "text": "{0}{1}"
+                                },
+                                {
+                                  "operator": "==",
+                                  "thresholdValue": "Not reporting",
+                                  "representation": "cancelled",
+                                  "text": "{0}{1}"
+                                },
+                                {
+                                  "operator": "Default",
+                                  "thresholdValue": null,
+                                  "representation": "unknown",
+                                  "text": "{0}{1}"
+                                }
+                              ]
+                            },
+                            "numberFormat": {
+                              "unit": 0,
+                              "options": {
+                                "style": "decimal"
+                              }
+                            },
+                            "tooltipFormat": {
+                              "tooltip": "Last connection: [\"Last MDE report\"]"
+                            }
+                          },
+                          {
+                            "columnMatch": "Environment",
+                            "formatter": 5
+                          },
+                          {
+                            "columnMatch": "OS",
+                            "formatter": 5
+                          },
+                          {
+                            "columnMatch": "Azure resource",
+                            "formatter": 5
+                          },
+                          {
+                            "columnMatch": "Heartbeat history",
+                            "formatter": 10,
+                            "formatOptions": {
+                              "palette": "redGreen"
+                            }
+                          },
+                          {
+                            "columnMatch": "Details",
+                            "formatter": 5
+                          },
+                          {
+                            "columnMatch": "hasAgent",
+                            "formatter": 5
+                          },
+                          {
+                            "columnMatch": "hasHealthyAgent",
+                            "formatter": 5
+                          },
+                          {
+                            "columnMatch": "_ComputerName_",
+                            "formatter": 5
+                          },
+                          {
+                            "columnMatch": "Last MDE report",
+                            "formatter": 5
+                          },
+                          {
+                            "columnMatch": "vulnerabilityAssessmentDescription",
+                            "formatter": 5
+                          },
+                          {
+                            "columnMatch": "Issues (Vulnerability Assessment)",
+                            "formatter": 5
+                          },
+                          {
+                            "columnMatch": "Last security event",
+                            "formatter": 5
+                          },
+                          {
+                            "columnMatch": "Log collection status",
+                            "formatter": 18,
+                            "formatOptions": {
+                              "thresholdsOptions": "icons",
+                              "thresholdsGrid": [
+                                {
+                                  "operator": "==",
+                                  "thresholdValue": "Healthy",
+                                  "representation": "success",
+                                  "text": "{0}{1}"
+                                },
+                                {
+                                  "operator": "==",
+                                  "thresholdValue": "Unhealthy",
+                                  "representation": "2",
+                                  "text": "{0}{1}"
+                                },
+                                {
+                                  "operator": "==",
+                                  "thresholdValue": "Not reporting",
+                                  "representation": "cancelled",
+                                  "text": "{0}{1}"
+                                },
+                                {
+                                  "operator": "Default",
+                                  "thresholdValue": null,
+                                  "representation": "Important",
+                                  "text": "{0}{1}"
+                                }
+                              ]
+                            },
+                            "tooltipFormat": {
+                              "tooltip": "Last heartbeat: [\"Time of last heartbeat\"]"
+                            }
+                          },
+                          {
+                            "columnMatch": "MDE health status",
+                            "formatter": 18,
+                            "formatOptions": {
+                              "thresholdsOptions": "icons",
+                              "thresholdsGrid": [
+                                {
+                                  "operator": "==",
+                                  "thresholdValue": "Healthy",
+                                  "representation": "Available",
+                                  "text": "{0}{1}"
+                                },
+                                {
+                                  "operator": "==",
+                                  "thresholdValue": "Unhealthy",
+                                  "representation": "2",
+                                  "text": "{0}{1}"
+                                },
+                                {
+                                  "operator": "==",
+                                  "thresholdValue": "Not connected",
+                                  "representation": "cancelled",
+                                  "text": "{0}{1}"
+                                },
+                                {
+                                  "operator": "Default",
+                                  "thresholdValue": null,
+                                  "representation": "pending",
+                                  "text": "{0}{1}"
+                                }
+                              ]
+                            },
+                            "tooltipFormat": {
+                              "tooltip": "Last connection: [\"Last MDE report\"]"
+                            }
+                          },
+                          {
+                            "columnMatch": "Computer",
+                            "formatter": 5
+                          },
+                          {
+                            "columnMatch": "vulnerabilityAssessmentStatusDescription",
+                            "formatter": 5
+                          }
+                        ],
+                        "rowLimit": 1000,
+                        "filter": true
+                      }
+                    },
+                    "name": "Consolidated view"
+                  }
+                ]
+              },
+              "name": "ServerAgentStatusNestedGroup"
+            }
+          ]
+        },
+        "name": "ServerAgentStatusGroup"
+      }
+    ],
+    "fallbackResourceIds": [],
+    "fromTemplateId": "sentinel-UserWorkbook",
+    "$schema": "https://github.com/Microsoft/Application-Insights-Workbooks/blob/master/schema/workbook.json"
+  }
